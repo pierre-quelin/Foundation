@@ -45,9 +45,9 @@ fi
 
 cd ../${0%/*}
 
-cppcheck ../Packages \
+cppcheck --std=c++17 ../src \
    -I../build/include \
-   --enable=all --inconclusive --xml --xml-version=2 2> ../dist/cppcheck-result.xml
+   --enable=all --suppress=missingIncludeSystem --inconclusive --xml --xml-version=2 2> ../dist/cppcheck-result.xml
 if [ $? -ne 0 ]; then
    exit 1;
 fi

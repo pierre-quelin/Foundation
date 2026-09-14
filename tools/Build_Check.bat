@@ -63,9 +63,9 @@ GOTO :EOF
 )
 
 IF EXIST "%PROG_FILES_X86%\Cppcheck\cppcheck.exe" (
-    "%PROG_FILES_X86%\Cppcheck\cppcheck.exe" %~dp0..\Packages ^
+    "%PROG_FILES_X86%\Cppcheck\cppcheck.exe" --std=c++17 %~dp0..\src ^
        -I%~dp0..\build\include ^
-       --enable=all --inconclusive --xml --xml-version=2 2> %~dp0..\dist\cppcheck-result.xml
+       --enable=all --suppress=missingIncludeSystem --inconclusive --xml --xml-version=2 2> %~dp0..\dist\cppcheck-result.xml
     IF ERRORLEVEL 1 GOTO :EOF
     EXIT /B 0
 )
