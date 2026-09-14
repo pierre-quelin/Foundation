@@ -27,6 +27,8 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            pkg-config \
+            libusb-1.0-0-dev \
             build-essential \
             ca-certificates \
             cmake \
