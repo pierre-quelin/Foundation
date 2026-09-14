@@ -45,7 +45,7 @@ fi
 
 cd ../${0%/*}
 
-cppcheck --std=c++17 ../src \
+cppcheck -j`nproc` --std=c++17 ../src \
    -I../build/include \
    --enable=all --suppress=missingIncludeSystem --inconclusive --xml --xml-version=2 2> ../dist/cppcheck-result.xml
 if [ $? -ne 0 ]; then
