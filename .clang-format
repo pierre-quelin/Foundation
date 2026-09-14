@@ -1,0 +1,123 @@
+---
+# Foundation — clang-format
+#
+# Version d'options : LLVM/Clang **19** (même famille que Debian stable / trixie).
+#
+# Installer l'outil :
+#   - Debian stable : `apt install clang-format`  → clang-format-19
+#   - Windows MinGW (MSYS2 ucrt64, toolchain Foundation) :
+#       pacman -S mingw-w64-ucrt-x86_64-clang
+#       PATH : C:/msys64/ucrt64/bin  (déjà préfixé par tools/Build_Gen.bat en mingw64)
+#       binaire : clang-format.exe (ex. 22.x sur ucrt64 actuel — options ≥19 OK)
+#       helper : tools\ClangFormat.bat  (dry-run) / tools\ClangFormat.bat -i  (écrit)
+# compile_commands.json : activé par défaut (CMAKE_EXPORT_COMPILE_COMMANDS) sous Make/Ninja/MinGW.
+# Ne pas utiliser le LLVM embarqué VS2019 (clang 12) : options invalides
+#   (SortIncludes: CaseSensitive, LineEnding, ReferenceAlignment, …).
+#
+# Conventions de nommage (non appliquées ici — voir .clang-tidy) :
+#   - Constantes / constexpr « nommées » : PascalCase (SramSyncRetries, KindReq)
+#   - Locaux / paramètres : camelCase (maxDepth, switches — dette partielle, cas par cas)
+#   - Membres : préfixe _ + camelCase (_root, _mutex)
+#   - Pas de préfixe k
+#
+# Ordre des #include (SortIncludes + IncludeCategories) :
+#   0. Header « main » du .cpp (IncludeIsMainRegex — hors catégories)
+#   1. Headers locaux du même dossier ("Foo.h", sans '/')
+#   2. Headers projet Foundation ("tools/...", "driver/...", …)
+#   3. Libs fetch / siblings + tierces (mcp2221a, esplora, boost, spdlog, nlohmann, sqlite3, libusb)
+#   4. STL / système (<atomic>, <memory>, …)
+# Les "..." projet restent avant la STL : chaque header projet doit être autonome.
+#
+# Style observé dans le code actuel : Allman, C++17, 4 espaces, pointeurs à gauche,
+# ColumnLimit 0, init-list après ':'.
+
+Language: Cpp
+Standard: c++17
+
+BasedOnStyle: LLVM
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: Consecutive
+AlignOperands: Align
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: MultiLine
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeWhile: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBraces: Allman
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 0
+CompactNamespaces: false
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Locaux same-dir (après le main header géré par IncludeIsMainRegex)
+  - Regex: '^"[^/]+\.h(pp)?"$'
+    Priority: 1
+  # Projet Foundation (trampoline build/include)
+  - Regex: '^"(actsens|driver|io|protocol|sample|tools|util)/'
+    Priority: 2
+  # Libs siblings / Description.xml fetch
+  - Regex: '^"(mcp2221a|esplora)/'
+    Priority: 3
+  - Regex: '^<(mcp2221a|esplora|libusb)/'
+    Priority: 3
+  # Tierces courantes
+  - Regex: '^"(boost|nlohmann|spdlog)/'
+    Priority: 3
+  - Regex: '^<(boost|spdlog|nlohmann)/'
+    Priority: 3
+  - Regex: '^<sqlite3\.h>$'
+    Priority: 3
+  # STL / système
+  - Regex: '^<'
+    Priority: 4
+  - Regex: '.*'
+    Priority: 5
+IncludeIsMainRegex: '([-_](test|tests))?$'
+IndentCaseLabels: true
+IndentCaseBlocks: true
+IndentWidth: 4
+InsertTrailingCommas: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+ReflowComments: true
+SortIncludes: CaseSensitive
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: Never
+SpacesInContainerLiterals: true
+TabWidth: 4
+UseTab: Never
+
+# Sources Windows (CRLF). Sur Debian CI, clang-format-19 respecte LineEnding.
+LineEnding: CRLF

@@ -1,0 +1,7 @@
+set_inc_path(tools/os/socket)
+add_inc(Runtime.hpp)
+add_inc(Socket.hpp)
+add_inc(TcpSocket.hpp)
+add_inc(UdpSocket.hpp)
+add_src(Runtime.cpp)
+add_src(Socket.cpp)

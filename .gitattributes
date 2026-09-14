@@ -1,0 +1,21 @@
+# Text files: UTF-8 without BOM, LF line endings.
+* text=auto eol=lf working-tree-encoding=UTF-8
+
+# Windows scripts: CRLF line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary
+*.dll binary
+*.obj binary
+*.lib binary
+*.a binary
+*.zip binary
+*.7z binary

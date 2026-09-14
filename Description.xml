@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Foundation — fetch into lib/ (gitignored). App: sibling Sample. -->
+<assembly>
+  <variants>
+    <variant>
+      <name>Foundation</name>
+      <id>000001</id>
+      <env>build-msvc16</env>
+      <env_version>1.0.0</env_version>
+      <build_path>C:/workspace/Foundation</build_path>
+      <build_target>msvc16-x86_64</build_target>
+    </variant>
+    <variant>
+      <name>Foundation</name>
+      <id>000002</id>
+      <env>build-mingw</env>
+      <env_version>1.0.0</env_version>
+      <build_path>C:/workspace/Foundation</build_path>
+      <build_target>mingw64</build_target>
+    </variant>
+    <variant>
+      <name>Foundation</name>
+      <id>000003</id>
+      <env>build-linux</env>
+      <env_version>1.0.0</env_version>
+      <build_path>/home/user/workspace/Foundation</build_path>
+      <build_target>linux-x86_64-trixie</build_target>
+    </variant>
+  </variants>
+
+  <components>
+    <component>
+      <name>nlohmann_json</name>
+      <version>v3.11.3</version>
+      <path>lib/nlohmann_json</path>
+      <source type="git" artifact="tree">https://github.com/nlohmann/json.git</source>
+      <build/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>spdlog</name>
+      <version>v1.14.1</version>
+      <path>lib/spdlog</path>
+      <source type="git" artifact="tree">https://github.com/gabime/spdlog.git</source>
+      <build/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>boost</name>
+      <version>1.86.0</version>
+      <path>lib/boost</path>
+      <source type="https" artifact="archive">https://archives.boost.io/release/1.86.0/source/boost_1_86_0.zip</source>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>mcp2221a_hid</name>
+      <version>v0.0.1</version>
+      <path>lib/mcp2221a_hid</path>
+      <source type="git" artifact="tree">https://github.com/pierre-quelin/libmcp2221a_hid.git</source>
+      <build/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>esplora_hid</name>
+      <version>v0.0.2</version>
+      <path>lib/esplora_hid</path>
+      <source type="git" artifact="tree">https://github.com/pierre-quelin/libesplora_hid.git</source>
+      <build/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>sqlite</name>
+      <version>3.46.1</version>
+      <path>lib/sqlite</path>
+      <source type="https" artifact="archive">https://www.sqlite.org/2024/sqlite-amalgamation-3460100.zip</source>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <component>
+      <name>paho.mqtt.cpp</name>
+      <version>v1.6.0</version>
+      <path>lib/paho.mqtt.cpp</path>
+      <source type="git" artifact="tree">https://github.com/eclipse-paho/paho.mqtt.cpp.git</source>
+      <build/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+    <!-- Init externals/paho.mqtt.c (v1.3.16) after the C++ clone above -->
+    <component>
+      <name>paho.mqtt.cpp.submodules</name>
+      <version>v1.6.0</version>
+      <path>lib/paho.mqtt.cpp</path>
+      <source type="git-submodules" artifact="tree"/>
+      <build_target>mingw64</build_target>
+      <build_target>msvc16-x86_64</build_target>
+      <build_target>linux-x86_64-trixie</build_target>
+    </component>
+
+  </components>
+</assembly>

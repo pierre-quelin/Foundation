@@ -1,0 +1,5 @@
+set_inc_path(tools/os/startup)
+add_inc(MainIni.hpp)
+add_inc(LoggerBoot.hpp)
+add_src(MainIni.cpp)
+add_src(LoggerBoot.cpp)

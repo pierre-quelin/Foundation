@@ -1,0 +1,89 @@
+/**
+ * Copyright (c) 2021-2026 - Pierre Quélin <pierre.quelin.1972@gmail.com>
+ *
+ * All rights reserved
+ *
+ * For the full license text, see:
+ * https://opensource.org/license/lgpl-3-0
+ *
+ * @file OutGhost.hpp
+ * @brief Out over EventBus / ITransport (no local hardware).
+ */
+#pragma once
+
+#include "io/out/IOut.h"
+#include "io/out/OutTopics.hpp"
+#include "tools/design/config/Node.hpp"
+#include "tools/design/factory/ApplicationServices.hpp"
+#include "tools/design/factory/ILaunchable.hpp"
+#include "tools/design/factory/IObject.hpp"
+#include "tools/design/ipc/IEventBus.hpp"
+#include "tools/design/ipc/ITransport.hpp"
+#include "util/json/Json.hpp"
+
+#include <atomic>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+
+namespace io::out
+{
+
+class OutGhost : public tools::design::factory::IObject,
+                 public IOut,
+                 public tools::design::factory::ILaunchable
+{
+public:
+    OutGhost(tools::design::ApplicationServices& app, tools::design::config::Node node);
+
+    ~OutGhost() override;
+
+    OutGhost(const OutGhost&)            = delete;
+    OutGhost& operator=(const OutGhost&) = delete;
+
+    void launch() override;
+
+    void start();
+    void stop();
+
+    int init() override;
+    int set(unsigned int value) override;
+    int get(unsigned int& value) const override;
+
+private:
+    struct PendingCmd
+    {
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool done = false;
+        bool ok   = false;
+    };
+
+    [[nodiscard]] bool busOnline() const;
+    [[nodiscard]] std::string nextCorr();
+    int sendCmd(const util::json::Json& body);
+    void onValue(const tools::design::ipc::Envelope& env);
+    void onRep(const tools::design::ipc::Envelope& env);
+    void onStatus(const tools::design::ipc::Envelope& env);
+
+    tools::design::ipc::IEventBus& _bus;
+    tools::design::ipc::ITransport& _transport;
+    OutTopics _topics;
+
+    mutable std::mutex _mutex;
+    bool _started       = false;
+    bool _ready         = false;
+    bool _hasValue      = false;
+    unsigned int _value = 0;
+
+    tools::design::ipc::SubscriptionId _valueSub  = 0;
+    tools::design::ipc::SubscriptionId _repSub    = 0;
+    tools::design::ipc::SubscriptionId _statusSub = 0;
+
+    std::atomic<std::uint64_t> _corr{1};
+    std::unordered_map<std::string, std::shared_ptr<PendingCmd>> _pending;
+};
+
+} // namespace io::out

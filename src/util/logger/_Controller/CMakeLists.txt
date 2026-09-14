@@ -1,0 +1,7 @@
+set_inc_path(util/logger)
+add_inc(LoggerCommands.hpp)
+add_inc(StreamText.hpp)
+add_inc(TcpLoggerHub.hpp)
+add_src(LoggerCommands.cpp)
+add_src(StreamText.cpp)
+add_src(TcpLoggerHub.cpp)

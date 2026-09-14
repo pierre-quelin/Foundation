@@ -1,0 +1,95 @@
+{
+   "GlobalObjects": [
+      { "Item": "IOBoard" }
+   ],
+   "IOBoard": {
+      "InstanceOf": "driver::board::EsploraBoard",
+      "LogLevel": "DEBUG",
+      "Inputs": [
+         { "Item": "btnUp" },
+         { "Item": "btnDown" },
+         { "Item": "btnLeft" },
+         { "Item": "btnRight" }
+      ],
+      "Outputs": [
+         { "Item": "buzzer" }
+      ],
+      "Leds": [
+         { "Item": "led" }
+      ],
+      "RGBWLeds": [
+         { "Item": "rgbLed" }
+      ],
+      "PWMs": [
+         { "Item": "unknown" }
+      ],
+      "ADCs": [
+         { "Item": "lightSensor" }
+      ],
+      "Objects": {
+         "btnUp": {
+            "InstanceOf": "io::in::InByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pins": [
+               { "Pin": "P00", "Polarity": "INVERTED" }
+            ]
+         },
+         "btnDown": {
+            "InstanceOf": "io::in::InByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pins": [
+               { "Pin": "P01", "Polarity": "NORMAL" }
+            ]
+         },
+         "btnLeft": {
+            "Comment": "Card transport unit",
+            "InstanceOf": "io::in::InByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pins": [
+               { "Comment": "Output tray", "Pin": "P02", "Polarity": "NORMAL" },
+               { "Comment": "Output trash", "Pin": "P03", "Polarity": "NORMAL" }
+            ]
+         },
+         "btnRight": {
+            "InstanceOf": "io::in::InByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pins": [
+               { "Pin": "P04", "Polarity": "NORMAL" }
+            ]
+         },
+         "buzzer": {
+            "Comment": "Not used",
+            "InstanceOf": "io::out::OutByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pins": [
+               { "Pin": "P06" }
+            ]
+         },
+         "led": {
+            "InstanceOf": "io::led::LedByPCA9539",
+            "PCA9539": "IOBoard.PCA9539",
+            "Pin": "P17"
+         },
+         "rgbLed": {
+            "InstanceOf": "io::led::RGBWLedByPCA9633",
+            "PCA9633": "IOBoard.PCA9633_0",
+            "Mapping": [
+               { "ColorId": "RED", "Led": "LED0" },
+               { "ColorId": "GREEN", "Led": "LED2" },
+               { "ColorId": "BLUE", "Led": "LED1" },
+               { "ColorId": "WHITE", "Led": "LED3" }
+            ]
+         },
+         "unknown": {
+            "InstanceOf": "io::pwm::PWMByPCA9633",
+            "PCA9633": "IOBoard.PCA9633_3",
+            "Led": "LED3"
+         },
+         "lightSensor": {
+            "InstanceOf": "io::adc::ADCByMCP2221",
+            "MCP2221": "IOBoard.MCP2221",
+            "GPPin": "GP1"
+         }
+      }
+   }
+}

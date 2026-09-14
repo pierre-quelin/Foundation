@@ -1,0 +1,62 @@
+name: MinGW64 UCRT CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-publish:
+    name: Build, run unit tests and publish
+    runs-on: windows-latest
+    env:
+      BUILD_TARGET: mingw64
+      BUILD_CONFIG: Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install MSYS2 UCRT64 dependencies
+        shell: cmd
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r tools\requirements.txt
+          choco install -y cmake
+          choco install -y doxygen
+          choco install -y cppcheck
+          choco install -y msys2
+          set "PATH=C:\msys64\ucrt64\bin;%PATH%"
+          C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
+          C:\msys64\usr\bin\bash.exe -lc "pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-g++ make clang clang-tools-extra"
+
+      - name: Fetch and compile the application
+        shell: cmd
+        run: .\Build.bat all
+
+      - name: Run static checks
+        shell: cmd
+        run: .\Build.bat check
+
+      - name: Generate documentation
+        shell: cmd
+        run: .\Build.bat doc
+
+      - name: Run unit tests
+        shell: cmd
+        run: .\Build.bat utest
+
+      - name: Publish successful artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-mingw64-ucrt-dist
+          path: dist/

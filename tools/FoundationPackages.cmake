@@ -1,0 +1,65 @@
+#
+# Foundation framework packages (util, tools/design, tools/os, drivers, io, actsens).
+# Shared by the main target and foundation_utests — not split by porting phase.
+#
+
+macro(add_foundation_core_packages)
+    add_package(util/chrono)
+
+    add_package(tools/design/config)
+    add_package(tools/design/factory)
+    add_package(tools/design/db)
+    add_package(tools/design/ipc)
+    add_package(tools/design/scheduler)
+    add_package(tools/design/time)
+    add_package(tools/design/statemachine)
+    add_package(tools/design/objkit)
+
+    # Demo + foundation_utests (frontend_integration_test)
+    add_package(sample/statemachine)
+
+    add_package(tools/os/sync)
+    add_package(tools/os/thread)
+    add_package(tools/os/timer)
+    add_package(tools/os/serport)
+    add_package(tools/os/serport/_eventBus)
+    add_package(tools/os/startup)
+
+    if ($ENV{BUILD_TARGET} MATCHES "linux-x86.*")
+        add_package(util/chrono/_linux)
+        add_package(tools/os/sync/_linux)
+        add_package(tools/os/thread/_linux)
+        add_package(tools/os/timer/_linux)
+        add_package(tools/os/serport/_linux)
+    elseif ($ENV{BUILD_TARGET} MATCHES "msvc[0-9]+" OR
+            $ENV{BUILD_TARGET} STREQUAL "mingw64")
+        add_package(util/chrono/_windows)
+        add_package(tools/os/sync/_windows)
+        add_package(tools/os/thread/_windows)
+        add_package(tools/os/timer/_windows)
+        add_package(tools/os/serport/_windows)
+    endif()
+endmacro()
+
+macro(add_foundation_board_packages)
+    # Board / chip drivers, IO adapters, actuators-sensors (framework surface)
+    add_package(actsens/solenoid)
+    add_package(driver/board/_EsploraBoard)
+    add_package(driver/chip/_MCP2221)
+    add_package(driver/chip/_PCA9539)
+    add_package(driver/chip/_PCA9633)
+    add_package(driver/chip/_PCA9635)
+    add_package(io/adc)
+    add_package(io/board)
+    add_package(io/in)
+    add_package(io/in/_eventBus)
+    add_package(io/led)
+    add_package(io/out)
+    add_package(io/out/_eventBus)
+    add_package(io/pwm)
+endmacro()
+
+macro(add_foundation_packages)
+    add_foundation_core_packages()
+    add_foundation_board_packages()
+endmacro()

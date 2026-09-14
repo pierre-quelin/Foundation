@@ -1,0 +1,6 @@
+set_inc_path(tools/os/serport)
+add_inc(SerportTopics.hpp)
+add_inc(SerportGhost.hpp)
+add_inc(SerportBridge.hpp)
+add_src(SerportGhost.cpp)
+add_src(SerportBridge.cpp)

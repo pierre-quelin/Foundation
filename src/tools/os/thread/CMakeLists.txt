@@ -1,0 +1,5 @@
+set_inc_path(tools/os/thread)
+add_inc(IThread.h)
+add_inc(CpuAffinity.hpp)
+add_inc(ThreadPolicy.hpp)
+add_src(CpuAffinity.cpp)

@@ -1,0 +1,16 @@
+set_inc_path(tools/design/factory)
+
+add_inc(ApplicationServices.hpp)
+add_inc(Registry.hpp)
+add_inc(Register.hpp)
+add_inc(Factory.hpp)
+add_inc(InstanceRegistry.hpp)
+add_inc(Obtain.hpp)
+add_inc(Tree.hpp)
+add_inc(ILaunchable.hpp)
+add_inc(IObject.hpp)
+add_inc(BootRoots.hpp)
+add_inc(LinkAll.hpp)
+
+add_src(Registry.cpp)
+add_src(ApplicationServices.cpp)

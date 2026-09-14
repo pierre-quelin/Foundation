@@ -1,0 +1,28 @@
+# Install public Foundation headers into dist/include (flat layout from add_inc / PKG_INCPATH).
+
+function(foundation_install_public_headers)
+    if(NOT DEFINED FOUNDATION_DIST_ROOT)
+        message(FATAL_ERROR "foundation_install_public_headers: FOUNDATION_DIST_ROOT not set")
+    endif()
+
+    get_property(_rels GLOBAL PROPERTY FOUNDATION_PUBLIC_HEADER_RELPATHS)
+    get_property(_srcs GLOBAL PROPERTY FOUNDATION_PUBLIC_HEADER_SOURCES)
+    if(NOT _rels)
+        message(WARNING "foundation_install_public_headers: no public headers registered (add_inc)")
+        return()
+    endif()
+
+    list(LENGTH _rels _count)
+    math(EXPR _last "${_count} - 1")
+    foreach(i RANGE 0 ${_last})
+        list(GET _rels ${i} _rel)
+        list(GET _srcs ${i} _src)
+        get_filename_component(_dir "${_rel}" DIRECTORY)
+        if(_dir)
+            set(_dest "${FOUNDATION_DIST_ROOT}/include/${_dir}")
+        else()
+            set(_dest "${FOUNDATION_DIST_ROOT}/include")
+        endif()
+        install(FILES "${_src}" DESTINATION "${_dest}")
+    endforeach()
+endfunction()

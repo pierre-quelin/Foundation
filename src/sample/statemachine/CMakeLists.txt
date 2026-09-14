@@ -1,0 +1,5 @@
+set_inc_path(sample/statemachine)
+add_inc(MyDevice.h)
+add_src(MyDevice.cpp)
+add_smd(MyDevice.smd)
+add_src(MyDevice_mh.cpp)

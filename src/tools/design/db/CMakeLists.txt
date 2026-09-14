@@ -1,0 +1,16 @@
+set_inc_path(tools/design/db)
+
+add_inc(DbException.hpp)
+add_inc(ISecretProvider.hpp)
+add_inc(IResultSet.hpp)
+add_inc(IStatement.hpp)
+add_inc(ITransaction.hpp)
+add_inc(ScopedTransaction.hpp)
+add_inc(IMigrator.hpp)
+add_inc(IDatabase.hpp)
+add_inc(SqliteDatabase.hpp)
+add_inc(SchemaMigrator.hpp)
+add_inc(DatabaseBoot.hpp)
+
+add_src(SqliteDatabase.cpp)
+add_src(SchemaMigrator.cpp)

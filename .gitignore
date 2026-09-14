@@ -1,0 +1,7 @@
+build/
+dist/
+doc/html/
+# Trees fetched via Description.xml (json, spdlog, boost, mcp2221a_hid, …)
+/lib/
+/.cproject
+/.project

@@ -1,0 +1,6 @@
+set_inc_path(io/pwm)
+add_inc(IPWM.h)
+add_inc(PWMByPCA9633.h)
+add_src(PWMByPCA9633.cpp)
+add_inc(PWMByPCA9635.h)
+add_src(PWMByPCA9635.cpp)

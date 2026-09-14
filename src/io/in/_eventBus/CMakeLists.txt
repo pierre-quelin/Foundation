@@ -1,0 +1,6 @@
+set_inc_path(io/in)
+add_inc(InTopics.hpp)
+add_inc(InGhost.hpp)
+add_inc(InBridge.hpp)
+add_src(InGhost.cpp)
+add_src(InBridge.cpp)

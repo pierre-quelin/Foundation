@@ -1,0 +1,6 @@
+set_inc_path(io/out)
+add_inc(OutTopics.hpp)
+add_inc(OutGhost.hpp)
+add_inc(OutBridge.hpp)
+add_src(OutGhost.cpp)
+add_src(OutBridge.cpp)

@@ -1,0 +1,88 @@
+{
+  "$schema": "foundation-smd-4",
+  "machine": "MyDevice",
+  "genopt": {
+    "namespace": "sample::statemachine",
+    "generator": "statemachine-cpp",
+    "trace": true
+  },
+  "timeRequests": [
+    {
+      "name": "transferTimeout",
+      "fires": "transferTimeout",
+      "config": "TransferTimeout"
+    }
+  ],
+  "regions": [
+    {
+      "name": "Root",
+      "states": [
+        {
+          "name": "NotReady",
+          "initial": true,
+          "entry": "check",
+          "transitions": [
+            { "guard": "isReady", "to": "Ready" }
+          ]
+        },
+        {
+          "name": "Ready",
+          "entry": "handler",
+          "transitions": [
+            { "guard": "!isReady", "to": "NotReady" }
+          ],
+          "states": [
+            {
+              "name": "Idle",
+              "initial": true,
+              "entry": "handler",
+              "transitions": [
+                { "event": "heartbeat", "action": "handler" },
+                { "event": "transfer", "action": "^check" },
+                { "guard": "canTransfer", "to": "WaitingTray", "else": "NoTray" }
+              ]
+            },
+            {
+              "name": "WaitingTray",
+              "entry": "handler",
+              "exit": "handler",
+              "arm": ["transferTimeout"],
+              "cancel": ["transferTimeout"],
+              "transitions": [
+                { "event": "trayPresent", "to": "Tray" },
+                { "event": "blocked", "guard": "isBlocked", "to": "Jam", "action": "handler" },
+                { "event": "transferTimeout", "to": "NoTray" },
+                { "event": "reset", "to": "Idle" }
+              ]
+            },
+            {
+              "name": "Tray",
+              "entry": "handler",
+              "transitions": [
+                { "event": "trayAbsent", "to": "NoTray", "action": "handler" },
+                { "event": "transfer", "guard": "canTransfer", "to": "WaitingTray" },
+                { "event": "reset", "to": "Idle" }
+              ]
+            },
+            {
+              "name": "NoTray",
+              "entry": "handler",
+              "transitions": [
+                { "event": "transfer", "to": "WaitingTray" },
+                { "event": "reset", "to": "Idle" }
+              ]
+            },
+            {
+              "name": "Jam",
+              "entry": "handler",
+              "transitions": [
+                { "event": "reset", "action": "^check" },
+                { "guard": "canTransfer", "to": "Idle", "else": "NoTray" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+set_inc_path(tools/design/scheduler)
+add_inc(EventScheduler.hpp)
+add_src(EventScheduler.cpp)
+add_inc(SchedulerService.hpp)
+add_src(SchedulerService.cpp)

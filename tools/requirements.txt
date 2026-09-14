@@ -1,0 +1,4 @@
+# Python packages required by tools/Dependencies.py (XSD validation).
+# If the corporate index lacks packages:
+#   pip install -r tools/requirements.txt --index-url https://pypi.org/simple
+xmlschema>=4.3.2
