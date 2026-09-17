@@ -11,7 +11,14 @@ permissions:
 jobs:
   build-test-publish:
     name: Build, run unit tests and publish
-    runs-on: windows-latest
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.13']
+
     env:
       BUILD_TARGET: mingw64
       BUILD_CONFIG: Release
@@ -20,16 +27,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pip and requirements
+        run: |
+          python -m ensurepip --upgrade
+          pip --version
+          python -m pip install -r tools\requirements.txt
 
       - name: Install MSYS2 UCRT64 dependencies
         shell: cmd
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r tools\requirements.txt
           choco install -y cmake
           choco install -y doxygen
           choco install -y graphviz
@@ -37,7 +48,7 @@ jobs:
           choco install -y msys2
           set "PATH=C:\msys64\ucrt64\bin;%PATH%"
           C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
-          C:\msys64\usr\bin\bash.exe -lc "pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-g++ make clang clang-tools-extra"
+          C:\msys64\usr\bin\bash.exe -lc "pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc make clang mingw-w64-ucrt-x86_64-clang-tools-extra"
 
       - name: Fetch and compile the application
         shell: cmd
