@@ -32,6 +32,7 @@ jobs:
           python -m pip install -r tools\requirements.txt
           choco install -y cmake
           choco install -y doxygen
+          choco install -y graphviz
           choco install -y cppcheck
           choco install -y msys2
           set "PATH=C:\msys64\ucrt64\bin;%PATH%"

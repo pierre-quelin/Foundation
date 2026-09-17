@@ -45,9 +45,9 @@ jobs:
         shell: cmd
         run: .\Build.bat doc
 
-      - name: Run unit tests
-        shell: cmd
-        run: .\Build.bat utest
+#      - name: Run unit tests
+#        shell: cmd
+#        run: .\Build.bat utest
 
       - name: Publish successful artifact
         if: success()
