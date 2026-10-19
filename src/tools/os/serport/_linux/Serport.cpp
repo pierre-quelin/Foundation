@@ -72,7 +72,8 @@ Serport::Serport(const std::string& deviceName) :
     }
 
     if ((0 != setParams(bitRate, dataBit, parity, stopBit)) ||
-        (0 != setFlowCtrl(flowCtrl)))
+        (0 != setFlowCtrl(flowCtrl)) ||
+        (0 != applyModemCtrlToPort()))
     {
         //        logErr( "tools::os::Serport - Configure device" );
         return;
@@ -210,32 +211,115 @@ int Serport::setParams(BitRate bRate, DataBit nData, Parity parity, StopBit nSto
 }
 
 /**
- * Set flow control parameters
+ * Set software flow control (XON/XOFF). FLOW_CTRL_HW aliases ModemCtrl rtsCts=FlowControl.
  */
 int Serport::setFlowCtrl(FlowCtrl flowCtrl)
 {
     const std::lock_guard<std::recursive_mutex> lock(_mutex);
 
-    // Flow control settings
+    _flowctrl = flowCtrl;
     switch (flowCtrl)
     {
         case FlowCtrl::FLOW_CTRL_NONE:
             _tio.c_iflag &= ~(IXON | IXOFF | IXANY);
-            _tio.c_cflag &= ~CRTSCTS;
             break;
         case FlowCtrl::FLOW_CTRL_XON_XOFF:
             _tio.c_iflag |= (IXON | IXOFF | IXANY);
-            _tio.c_cflag &= ~CRTSCTS;
             break;
         case FlowCtrl::FLOW_CTRL_HW:
             _tio.c_iflag &= ~(IXON | IXOFF | IXANY);
-            _tio.c_cflag |= CRTSCTS;
+            _modemCtrl.rtsCts = LinePairMode::FlowControl;
             break;
         default:
             return -1;
     }
 
-    return configurePort();
+    if (0 != configurePort())
+    {
+        return -1;
+    }
+    return applyModemCtrlToPort();
+}
+
+int Serport::applyModemCtrlToPort()
+{
+    if (_fd < 0)
+    {
+        return -1;
+    }
+
+    // RTS/CTS: CRTSCTS only in FlowControl; otherwise clear and drive TIOCM_RTS.
+    if (_modemCtrl.rtsCts == LinePairMode::FlowControl)
+    {
+        _tio.c_cflag |= CRTSCTS;
+    }
+    else
+    {
+        _tio.c_cflag &= ~CRTSCTS;
+    }
+    if (0 != configurePort())
+    {
+        return -1;
+    }
+
+    int status = 0;
+    if (ioctl(_fd, TIOCMGET, &status) < 0)
+    {
+        return -1;
+    }
+
+    if (_modemCtrl.rtsCts == LinePairMode::Assert)
+    {
+        status |= TIOCM_RTS;
+    }
+    else if (_modemCtrl.rtsCts == LinePairMode::Off)
+    {
+        status &= ~TIOCM_RTS;
+    }
+    // FlowControl: kernel owns RTS via CRTSCTS
+
+    if (_modemCtrl.dtrDsr == LinePairMode::Assert ||
+        _modemCtrl.dtrDsr == LinePairMode::FlowControl)
+    {
+        // Linux termios has no DTR/DSR HW flow equivalent to CRTSCTS; Assert DTR.
+        status |= TIOCM_DTR;
+    }
+    else
+    {
+        status &= ~TIOCM_DTR;
+    }
+
+    if (ioctl(_fd, TIOCMSET, &status) < 0)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int Serport::setModemCtrl(const ModemCtrl& modem)
+{
+    const std::lock_guard<std::recursive_mutex> lock(_mutex);
+    _modemCtrl = modem;
+    return applyModemCtrlToPort();
+}
+
+ModemStatus Serport::getModemStatus() const
+{
+    ModemStatus st{};
+    if (!_bPortReady || _fd < 0)
+    {
+        return st;
+    }
+    int status = 0;
+    if (ioctl(_fd, TIOCMGET, &status) < 0)
+    {
+        return st;
+    }
+    st.rts = (status & TIOCM_RTS) != 0;
+    st.cts = (status & TIOCM_CTS) != 0;
+    st.dtr = (status & TIOCM_DTR) != 0;
+    st.dsr = (status & TIOCM_DSR) != 0;
+    return st;
 }
 
 /**
@@ -504,10 +588,34 @@ void Serport::closePort()
     }
 }
 
+namespace
+{
+LinePairMode parseLinePairMode(const std::string& s)
+{
+    if (s == "Assert" || s == "assert" || s == "Enable" || s == "On")
+    {
+        return LinePairMode::Assert;
+    }
+    if (s == "FlowControl" || s == "Flow" || s == "HW" || s == "Handshake")
+    {
+        return LinePairMode::FlowControl;
+    }
+    return LinePairMode::Off;
+}
+} // namespace
+
 Serport::Serport(ApplicationServices& app, Node node) :
     Serport(node.at("DeviceName").value<std::string>())
 {
     (void)app;
+    ModemCtrl modem{};
+    if (node.contains("Modem"))
+    {
+        const Node m = node["Modem"];
+        modem.rtsCts = parseLinePairMode(m.value_or("RtsCts", std::string{"Off"}));
+        modem.dtrDsr = parseLinePairMode(m.value_or("DtrDsr", std::string{"Off"}));
+    }
+    (void)setModemCtrl(modem);
 }
 
 FOUNDATION_FACTORY_REGISTER(tools::os::serport::Serport,

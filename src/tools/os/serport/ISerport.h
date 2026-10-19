@@ -18,6 +18,35 @@
 namespace tools::os::serport
 {
 
+/**
+ * @brief Mode for one modem signal pair (RTS↔CTS or DTR↔DSR).
+ *
+ * - Off: force local output off; ignore remote input (no TX gating).
+ * - Assert: force local output on; ignore remote input (e.g. CSC RTS).
+ * - FlowControl: OS-driven handshake both ways (output auto + gate TX on input).
+ */
+enum class LinePairMode
+{
+    Off,
+    Assert,
+    FlowControl
+};
+
+struct ModemCtrl
+{
+    LinePairMode rtsCts{LinePairMode::Off};
+    LinePairMode dtrDsr{LinePairMode::Off};
+};
+
+/** @brief Live levels of the four modem lines (true = asserted / active). */
+struct ModemStatus
+{
+    bool rts{false};
+    bool cts{false};
+    bool dtr{false};
+    bool dsr{false};
+};
+
 class ISerport
 {
 public:
@@ -78,18 +107,26 @@ protected:
 
 public:
     [[nodiscard]] StopBit getStopBit() const { return _stopBit; }
+
+    /**
+     * @brief Software / legacy flow control.
+     * @note Hardware RTS/CTS (and DTR/DSR) is configured via @ref setModemCtrl.
+     *       @c FLOW_CTRL_HW is kept as an alias that sets @c rtsCts to FlowControl.
+     */
     enum class FlowCtrl
     {
         FLOW_CTRL_NONE,
         FLOW_CTRL_XON_XOFF,
-        FLOW_CTRL_HW
+        FLOW_CTRL_HW ///< deprecated alias → ModemCtrl.rtsCts = FlowControl
     };
 
 protected:
     FlowCtrl _flowctrl;
+    ModemCtrl _modemCtrl{};
 
 public:
     [[nodiscard]] FlowCtrl getFlowCtrl() const { return _flowctrl; }
+    [[nodiscard]] ModemCtrl getModemCtrl() const { return _modemCtrl; }
 
 public:
     virtual ~ISerport() = default;
@@ -115,6 +152,8 @@ public:
     virtual int cancel()                                                                       = 0;
     virtual int setParams(BitRate bRate, DataBit nData, Parity parity, StopBit nStop)          = 0;
     virtual int setFlowCtrl(FlowCtrl flowCtrl)                                                 = 0;
+    virtual int setModemCtrl(const ModemCtrl& modem)                                           = 0;
+    [[nodiscard]] virtual ModemStatus getModemStatus() const                                   = 0;
     [[nodiscard]] virtual bool isReady() const                                                 = 0;
     virtual int reset()                                                                        = 0;
 };

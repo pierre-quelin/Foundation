@@ -375,6 +375,24 @@ int SerportGhost::setFlowCtrl(FlowCtrl flowCtrl)
                    500_ms);
 }
 
+int SerportGhost::setModemCtrl(const ModemCtrl& modem)
+{
+    _modemCtrl = modem;
+    return sendCmd(util::json::Json{{"op", "setModemCtrl"},
+                                    {"rtsCts", static_cast<int>(modem.rtsCts)},
+                                    {"dtrDsr", static_cast<int>(modem.dtrDsr)}},
+                   500_ms);
+}
+
+ModemStatus SerportGhost::getModemStatus() const
+{
+    // Live remote status is not cached; report drive intent from last setModemCtrl.
+    ModemStatus st{};
+    st.rts = (_modemCtrl.rtsCts != LinePairMode::Off);
+    st.dtr = (_modemCtrl.dtrDsr != LinePairMode::Off);
+    return st;
+}
+
 bool SerportGhost::isReady() const
 {
     if (!busOnline())

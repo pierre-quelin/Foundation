@@ -210,6 +210,13 @@ void SerportBridge::onCmd(const tools::design::ipc::Envelope& env)
         {
             rc = _instance.setFlowCtrl(static_cast<ISerport::FlowCtrl>(req.value("flow", 0)));
         }
+        else if (op == "setModemCtrl")
+        {
+            ModemCtrl modem;
+            modem.rtsCts = static_cast<LinePairMode>(req.value("rtsCts", 0));
+            modem.dtrDsr = static_cast<LinePairMode>(req.value("dtrDsr", 0));
+            rc           = _instance.setModemCtrl(modem);
+        }
         rep["ok"] = (rc == 0);
         publishStatus(_instance.isReady());
     }

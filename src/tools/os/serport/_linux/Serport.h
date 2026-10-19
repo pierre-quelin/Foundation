@@ -53,6 +53,8 @@ public:
     int cancel() override { return -1; } ///< Not supported
     int setParams(BitRate bRate, DataBit nData, Parity parity, StopBit nStop) override;
     int setFlowCtrl(FlowCtrl flowCtrl) override;
+    int setModemCtrl(const ModemCtrl& modem) override;
+    [[nodiscard]] ModemStatus getModemStatus() const override;
     [[nodiscard]] bool isReady() const override { return _bPortReady; }
     int reset() override;
 
@@ -60,6 +62,7 @@ protected:
     int openPort();
     void closePort();
     int configurePort();
+    int applyModemCtrlToPort();
 
     explicit Serport(const std::string& deviceName);
 
