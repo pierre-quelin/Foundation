@@ -56,6 +56,7 @@ Serport::Serport(const std::string& portname) :
     _dcb.fErrorChar    = FALSE;
     _dcb.fNull         = FALSE;
     _dcb.fRtsControl   = RTS_CONTROL_DISABLE;
+    // Modem lines: applied from _modemCtrl (default Off/Off) via applyModemCtrlToDcb().
     _dcb.fAbortOnError = FALSE;
     _dcb.fDummy2       = 0;
     _dcb.wReserved     = 0;
@@ -240,16 +241,55 @@ int Serport::setParams(ISerport::BitRate bRate, ISerport::DataBit nData,
             break;
     }
 
+    applyModemCtrlToDcb();
     return configurePort();
 }
 
+void Serport::applyModemCtrlToDcb()
+{
+    switch (_modemCtrl.rtsCts)
+    {
+        case LinePairMode::Assert:
+            _dcb.fRtsControl  = RTS_CONTROL_ENABLE;
+            _dcb.fOutxCtsFlow = FALSE;
+            break;
+        case LinePairMode::FlowControl:
+            _dcb.fRtsControl  = RTS_CONTROL_HANDSHAKE;
+            _dcb.fOutxCtsFlow = TRUE;
+            break;
+        case LinePairMode::Off:
+        default:
+            _dcb.fRtsControl  = RTS_CONTROL_DISABLE;
+            _dcb.fOutxCtsFlow = FALSE;
+            break;
+    }
+
+    switch (_modemCtrl.dtrDsr)
+    {
+        case LinePairMode::Assert:
+            _dcb.fDtrControl  = DTR_CONTROL_ENABLE;
+            _dcb.fOutxDsrFlow = FALSE;
+            break;
+        case LinePairMode::FlowControl:
+            _dcb.fDtrControl  = DTR_CONTROL_HANDSHAKE;
+            _dcb.fOutxDsrFlow = TRUE;
+            break;
+        case LinePairMode::Off:
+        default:
+            _dcb.fDtrControl  = DTR_CONTROL_DISABLE;
+            _dcb.fOutxDsrFlow = FALSE;
+            break;
+    }
+}
+
 /**
- * Set flow control parameters
+ * Set software flow control (XON/XOFF). FLOW_CTRL_HW aliases ModemCtrl rtsCts=FlowControl.
  */
 int Serport::setFlowCtrl(FlowCtrl flowCtrl)
 {
     const std::lock_guard<std::recursive_mutex> lock(_mutex);
 
+    _flowctrl = flowCtrl;
     switch (flowCtrl)
     {
         case Serport::FlowCtrl::FLOW_CTRL_NONE:
@@ -260,6 +300,12 @@ int Serport::setFlowCtrl(FlowCtrl flowCtrl)
             _dcb.fOutX = true;
             _dcb.fInX  = true;
             break;
+        case Serport::FlowCtrl::FLOW_CTRL_HW:
+            _dcb.fOutX = false;
+            _dcb.fInX  = false;
+            _modemCtrl.rtsCts = LinePairMode::FlowControl;
+            applyModemCtrlToDcb();
+            break;
         default:
             _dcb.fOutX = false;
             _dcb.fInX  = false;
@@ -267,6 +313,34 @@ int Serport::setFlowCtrl(FlowCtrl flowCtrl)
     }
 
     return configurePort();
+}
+
+int Serport::setModemCtrl(const ModemCtrl& modem)
+{
+    const std::lock_guard<std::recursive_mutex> lock(_mutex);
+    _modemCtrl = modem;
+    applyModemCtrlToDcb();
+    return configurePort();
+}
+
+ModemStatus Serport::getModemStatus() const
+{
+    ModemStatus st{};
+    if (!_bPortReady || _hComm == NULL || _hComm == INVALID_HANDLE_VALUE)
+    {
+        return st;
+    }
+    DWORD modem = 0;
+    if (!::GetCommModemStatus(_hComm, &modem))
+    {
+        return st;
+    }
+    st.cts = (modem & MS_CTS_ON) != 0;
+    st.dsr = (modem & MS_DSR_ON) != 0;
+    // RTS/DTR are outputs: report requested drive state (asserted when Enable/Handshake).
+    st.rts = (_modemCtrl.rtsCts != LinePairMode::Off);
+    st.dtr = (_modemCtrl.dtrDsr != LinePairMode::Off);
+    return st;
 }
 
 /**
@@ -660,10 +734,34 @@ void Serport::changePortReady(bool ready)
     //    m_listenerManager.unlock();
 }
 
+namespace
+{
+LinePairMode parseLinePairMode(const std::string& s)
+{
+    if (s == "Assert" || s == "assert" || s == "Enable" || s == "On")
+    {
+        return LinePairMode::Assert;
+    }
+    if (s == "FlowControl" || s == "Flow" || s == "HW" || s == "Handshake")
+    {
+        return LinePairMode::FlowControl;
+    }
+    return LinePairMode::Off;
+}
+} // namespace
+
 Serport::Serport(ApplicationServices& app, Node node) :
     Serport(node.at("DeviceName").value<std::string>())
 {
     (void)app;
+    ModemCtrl modem{};
+    if (node.contains("Modem"))
+    {
+        const Node m = node["Modem"];
+        modem.rtsCts = parseLinePairMode(m.value_or("RtsCts", std::string{"Off"}));
+        modem.dtrDsr = parseLinePairMode(m.value_or("DtrDsr", std::string{"Off"}));
+    }
+    (void)setModemCtrl(modem);
 }
 
 FOUNDATION_FACTORY_REGISTER(tools::os::serport::Serport,

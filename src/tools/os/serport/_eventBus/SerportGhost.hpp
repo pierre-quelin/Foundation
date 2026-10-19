@@ -60,6 +60,8 @@ public:
     int cancel() override;
     int setParams(BitRate bRate, DataBit nData, Parity parity, StopBit nStop) override;
     int setFlowCtrl(FlowCtrl flowCtrl) override;
+    int setModemCtrl(const ModemCtrl& modem) override;
+    [[nodiscard]] ModemStatus getModemStatus() const override;
     [[nodiscard]] bool isReady() const override;
     int reset() override;
 

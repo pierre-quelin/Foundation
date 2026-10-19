@@ -68,6 +68,8 @@ public:
     int setParams(BitRate bRate, DataBit nData,
                   Parity parity, StopBit nStop) override;
     int setFlowCtrl(FlowCtrl flowCtrl) override;
+    int setModemCtrl(const ModemCtrl& modem) override;
+    [[nodiscard]] ModemStatus getModemStatus() const override;
     [[nodiscard]] bool isReady() const override { return _bPortReady; }
     int reset() override;
 
@@ -75,6 +77,7 @@ protected:
     int openPort(const std::string& portname);
     void closePort();
     int configurePort();
+    void applyModemCtrlToDcb();
     int internalRead(char* buffer, unsigned int size, unsigned long tout);
     void changePortReady(bool ready);
 
