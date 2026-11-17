@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundation.local/schemas/foundation-smd-4.schema.json",
+  "$comment": "SPDX-License-Identifier: MIT",
+  "title": "Foundation State Machine Design",
+  "description": "JSON Schema for Foundation .smd files (foundation-smd-4). Maintained by the Foundation team; Statemachine Designer consumes it for design-time validation. Source of truth for allowed keywords alongside SmdParser.",
+  "type": "object",
+  "required": ["$schema", "machine", "genopt", "initial", "states"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "description": "Foundation design schema version id (not a JSON Schema meta-URI).",
+      "const": "foundation-smd-4"
+    },
+    "machine": {
+      "type": "string",
+      "minLength": 1,
+      "description": "State machine name"
+    },
+    "genopt": { "$ref": "#/$defs/genopt" },
+    "initial": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the top-level initial state"
+    },
+    "timeRequests": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/timeRequest" }
+    },
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/state" }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "string",
+      "enum": ["async", "bound"]
+    },
+    "genopt": {
+      "type": "object",
+      "required": ["namespace"],
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "minLength": 1,
+          "description": "C++ namespace for codegen"
+        },
+        "generator": {
+          "type": "string",
+          "description": "e.g. statemachine-cpp"
+        },
+        "trace": {
+          "type": "boolean",
+          "description": "Global machine trace"
+        },
+        "stateSignal": {
+          "type": "string",
+          "description": "Pilot Signal name in setStateId (default: state)"
+        }
+      }
+    },
+    "timeRequest": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "fires": {
+          "type": "string",
+          "description": "Event posted on expiration (defaults to name)"
+        },
+        "config": {
+          "type": "string",
+          "description": "Pilot config key for Delay (PascalCase)"
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "required": ["states"] },
+          "then": { "required": ["initial"] },
+          "else": { "not": { "required": ["initial"] } }
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Local UML name (typically PascalCase)"
+        },
+        "initial": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of this composite state's initial direct substate"
+        },
+        "depth": { "type": "integer" },
+        "comment": { "type": "string" },
+        "entry": { "$ref": "#/$defs/entryField" },
+        "exit": { "$ref": "#/$defs/exitField" },
+        "arm": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "timeRequest names to arm on entry"
+        },
+        "cancel": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "timeRequest names to cancel on exit"
+        },
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/state" },
+          "description": "Non-empty ⇒ composite state"
+        },
+        "transitions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transition" }
+        },
+        "events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transition" },
+          "description": "Alias of transitions (either key accepted)"
+        }
+      }
+    },
+    "entryField": {
+      "description": "Entry presence / binding / optional post-check",
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "string",
+          "description": "handler | check | binding name (async/bound/custom)"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["handler", "check"]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "handler": { "type": "boolean" },
+            "binding": { "type": "string" },
+            "check": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "exitField": {
+      "description": "Exit presence / binding",
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "binding": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "actionField": {
+      "description": "true | handler | ^check | handler^check",
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "string",
+          "enum": ["handler", "^check", "handler^check"]
+        }
+      ]
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event": { "type": "string" },
+        "guard": {
+          "type": "string",
+          "description": "Leading ! negates"
+        },
+        "to": { "type": "string" },
+        "else": {
+          "type": "string",
+          "description": "Requires guard; alternate target"
+        },
+        "action": { "$ref": "#/$defs/actionField" },
+        "binding": { "$ref": "#/$defs/binding" },
+        "check": {
+          "type": "boolean",
+          "description": "true when arming/joining the check phase"
+        }
+      }
+    }
+  }
+}
