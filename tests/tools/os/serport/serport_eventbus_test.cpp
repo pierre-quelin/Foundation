@@ -120,6 +120,16 @@ public:
         return 0;
     }
 
+    int setModemCtrl(const ModemCtrl& /*modem*/) override
+    {
+        return 0;
+    }
+
+    [[nodiscard]] ModemStatus getModemStatus() const override
+    {
+        return {};
+    }
+
     [[nodiscard]] bool isReady() const override { return _ready; }
     int reset() override { return 0; }
 
